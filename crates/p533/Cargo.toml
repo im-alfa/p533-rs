@@ -7,3 +7,15 @@ edition = "2021"
 
 [dependencies]
 p372 = { path = "../p372" }
+
+[[example]]
+name = "simple"
+path = "../../examples/simple.rs"
+
+[[example]]
+name = "comprehensive"
+path = "../../examples/comprehensive.rs"
+
+[[example]]
+name = "technical"
+path = "../../examples/technical.rs"
