@@ -1,22 +1,22 @@
 use chrono::Datelike;
 use lazy_static::lazy_static;
-use std::f64::consts::PI;
+use std::{default, f64::consts::PI};
 
-#[derive(Debug)]
+#[derive(Debug, Default, Clone, Copy)]
 struct ManMadeNoiseParams {
     fa_m: f64, // Man-made noise
     du_m: f64, // Man-made noise upper decile
     dl_m: f64, // Man-made noise lower decile
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default, Clone, Copy)]
 struct GalacticNoiseParams {
     fa_g: f64, // Galactic noise
     du_g: f64, // Galactic noise upper decile
     dl_g: f64, // Galactic noise lower decile
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct AtmosphericStats {
     timeblock: u32, // Timeblock
     fa: f64,        // Atmospheric noise in dB above kT0b at 1 MHz
@@ -27,7 +27,7 @@ pub struct AtmosphericStats {
     sigma_dl: f64,  // Standard deviation of values of Dl
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default, Clone)]
 pub struct AtmosphericCoefficients {
     fakp: Vec<Vec<Vec<f64>>>,
     fakabp: Vec<Vec<f64>>,
@@ -35,14 +35,14 @@ pub struct AtmosphericCoefficients {
     dud: Vec<Vec<Vec<f64>>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default, Clone, Copy)]
 pub struct AtmosphericNoise {
     fa_a: f64, // Atmospheric noise
     du_a: f64, // Atmospheric noise upper decile
     dl_a: f64, // Atmospheric noise lower decile
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default, Clone, Copy)]
 pub struct NoiseParams {
     man_made_noise: ManMadeNoiseParams,
     galactic_noise: GalacticNoiseParams,
@@ -52,7 +52,9 @@ pub struct NoiseParams {
     fam_t: f64, // Total noise
 }
 
+#[derive(Debug, Default)]
 pub enum TerrainCategory {
+    #[default]
     City,
     Residential,
     Rural,
@@ -534,5 +536,52 @@ pub fn read_fam_dud(month: u32) -> AtmosphericCoefficients {
         fakabp,
         fam,
         dud,
+    }
+}
+
+impl NoiseParams {
+    /// Get the total noise value
+    pub fn get_total_noise(&self) -> f64 {
+        self.fam_t
+    }
+    
+    /// Get the total noise upper decile
+    pub fn get_upper_decile(&self) -> f64 {
+        self.du_t
+    }
+    
+    /// Get the total noise lower decile
+    pub fn get_lower_decile(&self) -> f64 {
+        self.dl_t
+    }
+    
+    /// Get the atmospheric noise component (FaA)
+    pub fn get_atmospheric_noise(&self) -> f64 {
+        self.atmospheric_noise.fa_a
+    }
+    
+    /// Get the man-made noise component (FaM) 
+    pub fn get_man_made_noise(&self) -> f64 {
+        self.man_made_noise.fa_m
+    }
+    
+    /// Get the galactic noise component (FaG)
+    pub fn get_galactic_noise(&self) -> f64 {
+        self.galactic_noise.fa_g
+    }
+    
+    /// Get the atmospheric noise deciles
+    pub fn get_atmospheric_deciles(&self) -> (f64, f64) {
+        (self.atmospheric_noise.du_a, self.atmospheric_noise.dl_a)
+    }
+    
+    /// Get the man-made noise deciles  
+    pub fn get_man_made_deciles(&self) -> (f64, f64) {
+        (self.man_made_noise.du_m, self.man_made_noise.dl_m)
+    }
+    
+    /// Get the galactic noise deciles
+    pub fn get_galactic_deciles(&self) -> (f64, f64) {
+        (self.galactic_noise.du_g, self.galactic_noise.dl_g)
     }
 }
