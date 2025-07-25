@@ -1,6 +1,6 @@
 use crate::constants::*;
-use crate::path_data::*;
 use crate::geometry;
+use crate::path_data::*;
 
 /// Sets the path structure output values to default values
 pub fn initialize_path(path: &mut PathData) {
@@ -33,7 +33,7 @@ pub fn initialize_path(path: &mut PathData) {
     // Find the great circle distance between the tx and rx.
     path.distance = geometry::great_circle_distance(path.l_tx, path.l_rx);
 
-    // There is a degenerate case where path distance is zero. 
+    // There is a degenerate case where path distance is zero.
     // If the distance is zero set it to epsilon as an approximation
     if path.distance == 0.0 {
         path.distance = DBL_EPSILON;
@@ -53,7 +53,7 @@ pub fn initialize_path(path: &mut PathData) {
     path.season = what_season(path.cp[MP].l, path.month);
 }
 
-/// This routine zeros the five potential control points. The locations of the T - d0/2 and R - d0/2 
+/// This routine zeros the five potential control points. The locations of the T - d0/2 and R - d0/2
 /// control points are determined elsewhere because they are dependent on n0 ( the lowest-order F2 mode)
 fn initialize_cps(path: &mut PathData) {
     // Initialize five control points
@@ -94,41 +94,53 @@ fn initialize_cps(path: &mut PathData) {
 
     // Find foF2, M(3000)F2 and foE the MP control point
     crate::calculate_cp_parameters::calculate_cp_parameters_impl(
-        &mut path.cp[MP], 
-        &path.fof2, 
-        &path.m3kf2, 
-        path.hour, 
-        path.ssn, 
-        path.month
+        &mut path.cp[MP],
+        &path.fof2,
+        &path.m3kf2,
+        path.hour,
+        path.ssn,
+        path.month,
     );
 
     // The next two control points depend on the total path length. If the path is not at least 2000 km then there is no
-    // point in determining control points 1000 km from each end. 
+    // point in determining control points 1000 km from each end.
     if path.distance >= 2000.0 {
         // R1k Control point - Fractional distance R - 1000
         let fracd = (path.distance - 1000.0) / path.distance;
-        geometry::great_circle_point(path.l_tx, path.l_rx, &mut path.cp[R1K], path.distance, fracd);
+        geometry::great_circle_point(
+            path.l_tx,
+            path.l_rx,
+            &mut path.cp[R1K],
+            path.distance,
+            fracd,
+        );
 
         // T1k Control point - Fractional distance T + 1000
         let fracd = 1000.0 / path.distance;
-        geometry::great_circle_point(path.l_tx, path.l_rx, &mut path.cp[T1K], path.distance, fracd);
+        geometry::great_circle_point(
+            path.l_tx,
+            path.l_rx,
+            &mut path.cp[T1K],
+            path.distance,
+            fracd,
+        );
 
         // Find foF2, M(3000)F2 and foE these control points
         crate::calculate_cp_parameters::calculate_cp_parameters_impl(
-            &mut path.cp[T1K], 
-            &path.fof2, 
-            &path.m3kf2, 
-            path.hour, 
-            path.ssn, 
-            path.month
+            &mut path.cp[T1K],
+            &path.fof2,
+            &path.m3kf2,
+            path.hour,
+            path.ssn,
+            path.month,
         );
         crate::calculate_cp_parameters::calculate_cp_parameters_impl(
-            &mut path.cp[R1K], 
-            &path.fof2, 
-            &path.m3kf2, 
-            path.hour, 
-            path.ssn, 
-            path.month
+            &mut path.cp[R1K],
+            &path.fof2,
+            &path.m3kf2,
+            path.hour,
+            path.ssn,
+            path.month,
         );
     }
 
@@ -198,28 +210,28 @@ fn what_season(l: Location, month: i32) -> i32 {
         match month {
             NOV | DEC | JAN | FEB => {
                 season = WINTER as i32;
-            },
+            }
             MAR | APR | SEP | OCT => {
                 season = EQUINOX as i32;
-            },
+            }
             MAY | JUN | JUL | AUG => {
                 season = SUMMER as i32;
-            },
-            _ => {},
+            }
+            _ => {}
         }
     } else {
-        // Southern Hemisphere 
+        // Southern Hemisphere
         match month {
             MAY | JUN | JUL | AUG => {
                 season = WINTER as i32;
-            },
+            }
             MAR | APR | SEP | OCT => {
                 season = EQUINOX as i32;
-            },
+            }
             NOV | DEC | JAN | FEB => {
                 season = SUMMER as i32;
-            },
-            _ => {},
+            }
+            _ => {}
         }
     }
 

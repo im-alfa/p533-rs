@@ -1,21 +1,23 @@
+pub mod between_7000km_and_9000km_util;
+pub mod calculate_cp_parameters;
+pub mod circuit_reliability_util;
 pub mod constants;
-pub mod path_data;
+pub mod e_layer_screening_frequency;
 pub mod geometry;
 pub mod initialize_path_util;
-pub mod muf_basic;
-pub mod muf_variability;
-pub mod muf_operational;
-pub mod e_layer_screening_frequency;
-pub mod median_skywave_field_strength_short_util;
-pub mod median_skywave_field_strength_long_util;
-pub mod between_7000km_and_9000km_util;
 pub mod median_available_receiver_power_util;
-pub mod circuit_reliability_util;
+pub mod median_skywave_field_strength_long_util;
+pub mod median_skywave_field_strength_short_util;
+pub mod muf_basic;
+pub mod muf_operational;
+pub mod muf_variability;
+pub mod path_data;
 pub mod read_ion_parameters;
 pub mod read_p1239_util;
-pub mod calculate_cp_parameters;
 
 pub use constants::*;
+pub use initialize_path_util::initialize_path;
+pub use muf_variability::find_fof2_var;
 pub use path_data::*;
 
 /// This program provides methods for the prediction of available frequencies, signal levels, and the predicted reliability
@@ -24,7 +26,7 @@ pub use path_data::*;
 /// This program is loosely based on the program REC533. This model uses control points to determine the modes of propagation of
 /// HF signals in the ionosphere.
 pub fn calculate_p533(path: &mut PathData) {
-    // Calculate the distances between rx and tx, find the midpoint of the path, find the midpoint distance and initialize the path 
+    // Calculate the distances between rx and tx, find the midpoint of the path, find the midpoint distance and initialize the path
     // This will also determine the ionospheric parameters for 3 of the potential 5 control points.
     initialize_path_util::initialize_path(path);
 
@@ -43,17 +45,17 @@ pub fn calculate_p533(path: &mut PathData) {
     /* Part 1 – Frequency availability                          */
     /************************************************************/
     /*
-       The following routines in Part 1:
-            i) MUFBasic()
-            ii) MUFVariability()
-            iii) MUFOperational()
-       Have to be executed in the order above because they slowly populate the path structure
-       as the calculation progresses. Typically they follow the flow of ITU-R P533-11
-       since the standard is not necessarily a description of a computer algorithm some of the 
-       calculation is out of sequence with ITU-R P.533-12.
+      The following routines in Part 1:
+           i) MUFBasic()
+           ii) MUFVariability()
+           iii) MUFOperational()
+      Have to be executed in the order above because they slowly populate the path structure
+      as the calculation progresses. Typically they follow the flow of ITU-R P533-11
+      since the standard is not necessarily a description of a computer algorithm some of the
+      calculation is out of sequence with ITU-R P.533-12.
 
-       Note: The following 4 subroutines are only applicable to paths less than or equal to 9000 km
-     */
+      Note: The following 4 subroutines are only applicable to paths less than or equal to 9000 km
+    */
 
     // Determine the basic MUF (BMUF) This will also determine R - d0/2 and T - d0/2
     // Control points if necessary.
@@ -73,7 +75,7 @@ pub fn calculate_p533(path: &mut PathData) {
     /************************************************************/
     /*
      * Each of the routines below will initially check the path->distance to determine if the calculation should proceed.
-     * As in Part 1 above these routines are designed to be executed in the following order 
+     * As in Part 1 above these routines are designed to be executed in the following order
      * 		i)		MedianSkywaveFieldStrengthShort()	Calculation for path->distance < 9000 km
      *		ii)		MedianSkywaveFieldStrengthLong()	Calculation for path->distance > 9000 km
      *		iii)	Between7000kmand9000km()			Interpolation for path->distance between 7000 and 9000 km
@@ -91,9 +93,15 @@ pub fn calculate_p533(path: &mut PathData) {
     /* Part 3 – The prediction of system performance            */
     /************************************************************/
 
-    // Call noise from the P372 crate 
-    // Note: Using a default terrain category for now - this should be configurable
-    path.noise_p = p372::noise(path.hour as u32, path.l_rx.lng, path.l_rx.lat, p372::TerrainCategory::Rural, path.frequency);
+    // Get the noise
+    path.noise_p = p372::noise(
+        path.hour as u32,
+        path.l_rx.lng,
+        path.l_rx.lat,
+        p372::TerrainCategory::City,
+        path.frequency,
+        path.month as u32,
+    );
 
     circuit_reliability_util::circuit_reliability(path);
 }
@@ -101,12 +109,20 @@ pub fn calculate_p533(path: &mut PathData) {
 /// Create and calculate a new P533 path prediction
 /// This is a high-level convenience function for creating path predictions
 pub fn create_path_prediction(
-    tx_lat: f64, tx_lng: f64, rx_lat: f64, rx_lng: f64,
-    year: i32, month: i32, hour: i32, ssn: i32,
-    frequency: f64, txpower: f64,
-    tx_antenna_gain: f64, rx_antenna_gain: f64
+    tx_lat: f64,
+    tx_lng: f64,
+    rx_lat: f64,
+    rx_lng: f64,
+    year: i32,
+    month: i32,
+    hour: i32,
+    ssn: i32,
+    frequency: f64,
+    txpower: f64,
+    tx_antenna_gain: f64,
+    rx_antenna_gain: f64,
 ) -> PathData {
-    use crate::path_data::{PathData, Location, Antenna};
+    use crate::path_data::{Antenna, Location, PathData};
 
     // Initialize path data structure
     let mut path = PathData {
@@ -127,8 +143,14 @@ pub fn create_path_prediction(
         a: 0.0,
         tw: 0.0,
         fw: 0.0,
-        l_tx: Location { lat: tx_lat * std::f64::consts::PI / 180.0, lng: tx_lng * std::f64::consts::PI / 180.0 },
-        l_rx: Location { lat: rx_lat * std::f64::consts::PI / 180.0, lng: rx_lng * std::f64::consts::PI / 180.0 },
+        l_tx: Location {
+            lat: tx_lat * std::f64::consts::PI / 180.0,
+            lng: tx_lng * std::f64::consts::PI / 180.0,
+        },
+        l_rx: Location {
+            lat: rx_lat * std::f64::consts::PI / 180.0,
+            lng: rx_lng * std::f64::consts::PI / 180.0,
+        },
         a_tx: Antenna {
             name: "TX Antenna".to_string(),
             freqn: 1,
@@ -153,20 +175,37 @@ pub fn create_path_prediction(
 /// Calculate circuit reliability percentage
 /// This function provides a high-level interface for circuit reliability calculations
 pub fn calculate_circuit_reliability(
-    tx_lat: f64, tx_lng: f64, rx_lat: f64, rx_lng: f64,
-    year: i32, month: i32, hour: i32, ssn: i32,
-    frequency: f64, required_snr: f64,
-    tx_power: f64, tx_antenna_gain: f64, rx_antenna_gain: f64
+    tx_lat: f64,
+    tx_lng: f64,
+    rx_lat: f64,
+    rx_lng: f64,
+    year: i32,
+    month: i32,
+    hour: i32,
+    ssn: i32,
+    frequency: f64,
+    required_snr: f64,
+    tx_power: f64,
+    tx_antenna_gain: f64,
+    rx_antenna_gain: f64,
 ) -> f64 {
     let mut path = create_path_prediction(
-        tx_lat, tx_lng, rx_lat, rx_lng,
-        year, month, hour, ssn,
-        frequency, tx_power,
-        tx_antenna_gain, rx_antenna_gain
+        tx_lat,
+        tx_lng,
+        rx_lat,
+        rx_lng,
+        year,
+        month,
+        hour,
+        ssn,
+        frequency,
+        tx_power,
+        tx_antenna_gain,
+        rx_antenna_gain,
     );
-    
+
     path.snrr = required_snr;
-    
+
     // Return basic estimate based on frequency vs MUF
     if path.muf90 > 0.0 {
         if frequency <= path.muf90 {
@@ -186,15 +225,26 @@ pub fn calculate_circuit_reliability(
 /// Get MUF information for a path
 /// This provides access to the Maximum Usable Frequency calculations
 pub fn get_muf_info(
-    tx_lat: f64, tx_lng: f64, rx_lat: f64, rx_lng: f64,
-    year: i32, month: i32, hour: i32, ssn: i32
+    tx_lat: f64,
+    tx_lng: f64,
+    rx_lat: f64,
+    rx_lng: f64,
+    year: i32,
+    month: i32,
+    hour: i32,
+    ssn: i32,
 ) -> (f64, f64, f64, f64, f64) {
     let path = create_path_prediction(
-        tx_lat, tx_lng, rx_lat, rx_lng,
-        year, month, hour, ssn,
-        10.0, 100.0, // Default frequency and power
-        0.0, 0.0     // Default antenna gains
+        tx_lat, tx_lng, rx_lat, rx_lng, year, month, hour, ssn, 10.0,
+        100.0, // Default frequency and power
+        0.0, 0.0, // Default antenna gains
     );
-    
-    (path.muf50, path.muf90, path.muf10, path.opmuf, path.distance)
+
+    (
+        path.muf50,
+        path.muf90,
+        path.muf10,
+        path.opmuf,
+        path.distance,
+    )
 }

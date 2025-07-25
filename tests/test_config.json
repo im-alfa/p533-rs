@@ -1,0 +1,128 @@
+{
+  "general": {
+    "tolerance_default": 0.01,
+    "tolerance_strict": 0.001,
+    "year": 2023,
+    "month": 6,
+    "hour": 12,
+    "ssn_normal": 100,
+    "ssn_low": 10,
+    "ssn_high": 200,
+    "frequency_default": 14.0,
+    "power": 20.0,
+    "tx_gain": 3.0,
+    "rx_gain": 2.0
+  },
+  "scenarios": [
+    {
+      "name": "dublin_new_york",
+      "description": "Dublin to New York, 14 MHz, mid-day",
+      "tx_lat": 53.3,
+      "tx_lon": -6.2,
+      "rx_lat": 40.7,
+      "rx_lon": -74.0,
+      "frequency": 14.0,
+      "hour": 12,
+      "ssn": 100
+    },
+    {
+      "name": "london_paris",
+      "description": "London to Paris, 14 MHz, short path",
+      "tx_lat": 51.5,
+      "tx_lon": 0.1,
+      "rx_lat": 48.9,
+      "rx_lon": 2.3,
+      "frequency": 14.0,
+      "hour": 12,
+      "ssn": 100
+    },
+    {
+      "name": "moscow_rome",
+      "description": "Moscow to Rome, 14 MHz, medium path",
+      "tx_lat": 55.7,
+      "tx_lon": 37.6,
+      "rx_lat": 41.9,
+      "rx_lon": 12.5,
+      "frequency": 14.0,
+      "hour": 12,
+      "ssn": 100
+    },
+    {
+      "name": "sydney_san_francisco",
+      "description": "Sydney to San Francisco, 14 MHz, very long path",
+      "tx_lat": -33.9,
+      "tx_lon": 151.2,
+      "rx_lat": 37.8,
+      "rx_lon": -122.4,
+      "frequency": 14.0,
+      "hour": 12,
+      "ssn": 100
+    },
+    {
+      "name": "dublin_new_york_7mhz",
+      "description": "Dublin to New York, 7 MHz, lower frequency",
+      "tx_lat": 53.3,
+      "tx_lon": -6.2,
+      "rx_lat": 40.7,
+      "rx_lon": -74.0,
+      "frequency": 7.0,
+      "hour": 12,
+      "ssn": 100
+    },
+    {
+      "name": "dublin_new_york_21mhz",
+      "description": "Dublin to New York, 21 MHz, higher frequency",
+      "tx_lat": 53.3,
+      "tx_lon": -6.2,
+      "rx_lat": 40.7,
+      "rx_lon": -74.0,
+      "frequency": 21.0,
+      "hour": 12,
+      "ssn": 100
+    },
+    {
+      "name": "dublin_new_york_00z",
+      "description": "Dublin to New York, 14 MHz, midnight UTC",
+      "tx_lat": 53.3,
+      "tx_lon": -6.2,
+      "rx_lat": 40.7,
+      "rx_lon": -74.0,
+      "frequency": 14.0,
+      "hour": 0,
+      "ssn": 100
+    },
+    {
+      "name": "dublin_new_york_18z",
+      "description": "Dublin to New York, 14 MHz, evening UTC",
+      "tx_lat": 53.3,
+      "tx_lon": -6.2,
+      "rx_lat": 40.7,
+      "rx_lon": -74.0,
+      "frequency": 14.0,
+      "hour": 18,
+      "ssn": 100
+    },
+    {
+      "name": "dublin_new_york_low_ssn",
+      "description": "Dublin to New York, 14 MHz, low solar activity",
+      "tx_lat": 53.3,
+      "tx_lon": -6.2,
+      "rx_lat": 40.7,
+      "rx_lon": -74.0,
+      "frequency": 14.0,
+      "hour": 12,
+      "ssn": 10
+    },
+    {
+      "name": "dublin_new_york_high_ssn",
+      "description": "Dublin to New York, 14 MHz, high solar activity",
+      "tx_lat": 53.3,
+      "tx_lon": -6.2,
+      "rx_lat": 40.7,
+      "rx_lon": -74.0,
+      "frequency": 14.0,
+      "hour": 12,
+      "ssn": 200
+    }
+  ]
+}

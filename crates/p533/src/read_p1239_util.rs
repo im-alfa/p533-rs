@@ -19,16 +19,16 @@ pub fn read_p1239(path: &mut PathData) -> bool {
     let data_bytes = include_bytes!("../static_data/P1239-3 Decile Factors.txt");
     let data = String::from_utf8_lossy(data_bytes);
     let lines: Vec<&str> = data.lines().collect();
-    
+
     const SEASON: usize = 3; // 3 seasons
-    //		1) WINTER 2) EQUINOX 3) SUMMER
+                             //		1) WINTER 2) EQUINOX 3) SUMMER
     const LAT: usize = 19; // 19 latitude by 5
-    //      0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90
+                           //      0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90
     const SSN: usize = 3; // 3 SSN ranges
-    //		1) R12 < 50 2) 50 <= R12 <= 100 3) R12 > 100
-    const DECILE: usize = 2; // 2 deciles 
-    //	1) lower 2) upper
-    
+                          //		1) R12 < 50 2) 50 <= R12 <= 100 3) R12 > 100
+    const DECILE: usize = 2; // 2 deciles
+                             //	1) lower 2) upper
+
     // Initialize the foF2var array if it's empty
     if path.fof2var.is_empty() {
         path.fof2var.resize(SEASON, Vec::new());
@@ -45,9 +45,9 @@ pub fn read_p1239(path: &mut PathData) -> bool {
             }
         }
     }
-    
+
     let mut current_line = 2; // Skip first 2 lines
-    
+
     // Now read numbers for the lower decile.
     for n in 0..DECILE {
         // 2 deciles lower and upper
@@ -57,27 +57,28 @@ pub fn read_p1239(path: &mut PathData) -> bool {
                 // Three sunspot ranges
                 // Read the next four lines of text.
                 current_line += 4;
-                
+
                 for k in (0..LAT).rev() {
                     // 19 latitudes counting backward to make the indices correspond to increasing latitude
                     if current_line < lines.len() {
                         let line = lines[current_line];
                         let parts: Vec<&str> = line.split("    ").collect();
-                        
-                        if parts.len() >= 25 { // Expecting at least 25 parts (1 label + 24 values)
+
+                        if parts.len() >= 25 {
+                            // Expecting at least 25 parts (1 label + 24 values)
                             for l in 0..24 {
                                 if let Ok(value) = parts[l + 1].parse::<f64>() {
                                     path.fof2var[i][l][k][m][n] = value;
                                 }
                             }
                         }
-                        
+
                         current_line += 1;
                     }
                 }
             }
         }
     }
-    
+
     true
 }

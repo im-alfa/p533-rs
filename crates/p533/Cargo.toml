@@ -7,6 +7,9 @@ edition = "2021"
 
 [dependencies]
 p372 = { path = "../p372" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.8"
 
 [[example]]
 name = "simple"
@@ -19,3 +22,7 @@ path = "../../examples/comprehensive.rs"
 [[example]]
 name = "technical"
 path = "../../examples/technical.rs"
+
+[[bin]]
+name = "generate_baseline"
+path = "../../tests/rust/generate_baseline.rs"

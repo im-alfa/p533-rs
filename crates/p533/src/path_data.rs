@@ -1,5 +1,5 @@
-use p372::NoiseParams;
 use crate::constants::*;
+use p372::NoiseParams;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Location {
@@ -9,14 +9,14 @@ pub struct Location {
 
 #[derive(Debug, Clone, Copy)]
 pub struct SolarParameters {
-    pub ha: f64,      // hour angle (radians)
-    pub sha: f64,     // Sunrise/sunset hour angle (radians)
-    pub sza: f64,     // Solar zenith angle (radians)
-    pub decl: f64,    // Solar declination (radians)
-    pub eot: f64,     // Equation of time (minutes)
-    pub lsr: f64,     // local sunrise (hours)
-    pub lsn: f64,     // local solar noon (hours)
-    pub lss: f64,     // local sunset (hours)
+    pub ha: f64,   // hour angle (radians)
+    pub sha: f64,  // Sunrise/sunset hour angle (radians)
+    pub sza: f64,  // Solar zenith angle (radians)
+    pub decl: f64, // Solar declination (radians)
+    pub eot: f64,  // Equation of time (minutes)
+    pub lsr: f64,  // local sunrise (hours)
+    pub lsn: f64,  // local solar noon (hours)
+    pub lss: f64,  // local sunset (hours)
 }
 
 impl Default for SolarParameters {
@@ -37,15 +37,15 @@ impl Default for SolarParameters {
 #[derive(Debug, Clone)]
 pub struct ControlPt {
     pub l: Location,
-    pub distance: f64,    // This is the distance (km) from the transmitter to the CP and not the hop range
-    pub foe: f64,         // E layer critical frequency (MHz)
-    pub fof2: f64,        // F2 layer critical frequency (MHz)
-    pub m3kf2: f64,       // F2 layer critical frequency @ 3000 km (MHz)
-    pub dip: [f64; 2],    // Magnetic dip (radians)
-    pub fh: [f64; 2],     // Gyrofrequency (MHz)
-    pub ltime: f64,       // Local time (hours)
-    pub hr: f64,          // Mirror reflection point (km)
-    pub x: f64,           // foE/foF2 ratio used in the calculation of the F2MUF
+    pub distance: f64, // This is the distance (km) from the transmitter to the CP and not the hop range
+    pub foe: f64,      // E layer critical frequency (MHz)
+    pub fof2: f64,     // F2 layer critical frequency (MHz)
+    pub m3kf2: f64,    // F2 layer critical frequency @ 3000 km (MHz)
+    pub dip: [f64; 2], // Magnetic dip (radians)
+    pub fh: [f64; 2],  // Gyrofrequency (MHz)
+    pub ltime: f64,    // Local time (hours)
+    pub hr: f64,       // Mirror reflection point (km)
+    pub x: f64,        // foE/foF2 ratio used in the calculation of the F2MUF
     pub sun: SolarParameters, // Solar parameters
 }
 
@@ -70,7 +70,7 @@ impl Default for ControlPt {
 #[derive(Debug, Clone, Copy)]
 pub struct Mode {
     // Define the myriad of MUFs
-    pub bmuf: f64,    // Basic MUF (MHz). Typically there is no difference between the basic and the 50% MUF
+    pub bmuf: f64, // Basic MUF (MHz). Typically there is no difference between the basic and the 50% MUF
     // The BMUF is checked to see if it is != 0.0 to determine if the mode exists
     pub muf90: f64,   // MUF exceeded for 90% of the days of the month (MHz)
     pub muf50: f64,   // MUF exceeded for 50% of the days of the month(MHz)
@@ -82,14 +82,14 @@ pub struct Mode {
     pub deltal: f64,  // Lower decile for the MUF calculations
     pub deltau: f64,  // Upper decile for the MUF calculations
     // Other parameters associated with the mode
-    pub hr: f64,      // Reflection height for the mode
-    pub fs: f64,      // E-Layer screening frequency for F2 modes only(MHz)
-    pub lb: f64,      // < 9000 km path basic loss
-    pub ew: f64,      // < 9000 km field strength(dB(1 uV/m))
-    pub ele: f64,     // Elevation angle
-    pub prw: f64,     // Receiver power (dBW)
-    pub grw: f64,     // Receive antenna gain (dBi)
-    pub tau: f64,     // Time delay
+    pub hr: f64,  // Reflection height for the mode
+    pub fs: f64,  // E-Layer screening frequency for F2 modes only(MHz)
+    pub lb: f64,  // < 9000 km path basic loss
+    pub ew: f64,  // < 9000 km field strength(dB(1 uV/m))
+    pub ele: f64, // Elevation angle
+    pub prw: f64, // Receiver power (dBW)
+    pub grw: f64, // Receive antenna gain (dBi)
+    pub tau: f64, // Time delay
     pub mc: i32,
 }
 
@@ -121,9 +121,9 @@ impl Default for Mode {
 
 #[derive(Debug, Clone, Copy)]
 pub struct Beam {
-    pub azm: f64,     // Azimuth
-    pub ele: f64,     // Elevation angle
-    pub g: f64,       // Gain for the azimuth and elevation
+    pub azm: f64, // Azimuth
+    pub ele: f64, // Elevation angle
+    pub g: f64,   // Gain for the azimuth and elevation
 }
 
 #[derive(Debug, Clone)]
@@ -163,34 +163,33 @@ impl Default for Antenna {
 #[derive(Debug, Clone)]
 pub struct PathData {
     // User-provided Input ************************************************************************
-
     pub year: i32,
-    pub month: i32,          // Note: This is 0 - 11
-    pub hour: i32,           // Note: This is an hour index 0 - 23
+    pub month: i32, // Note: This is 0 - 11
+    pub hour: i32,  // Note: This is an hour index 0 - 23
     //       Where 1 - 24 UTC is required add one and rollover
-    pub ssn: i32,            // 12-month smoothed sun sport number a.k.a. R12
+    pub ssn: i32, // 12-month smoothed sun sport number a.k.a. R12
 
-    pub modulation: i32,     // Modulation flag
+    pub modulation: i32, // Modulation flag
 
-    pub sor_l: i32,          //  Short or long path switch
+    pub sor_l: i32, //  Short or long path switch
 
-    pub frequency: f64,      // Frequency (MHz)
-    pub bw: f64,             // Bandwidth (Hz)
+    pub frequency: f64, // Frequency (MHz)
+    pub bw: f64,        // Bandwidth (Hz)
 
-    pub txpower: f64,        // Transmitter power (dB(1 kW))
+    pub txpower: f64, // Transmitter power (dB(1 kW))
 
-    pub snrxxp: i32,         // Required signal-to-noise ration (%) of the time (1 to 99)
-    pub snrr: f64,           // Required signal-to-noise ratio (dB)
-    pub sirr: f64,           // Required signal-to-interference ratio (dB)
+    pub snrxxp: i32, // Required signal-to-noise ration (%) of the time (1 to 99)
+    pub snrr: f64,   // Required signal-to-noise ratio (dB)
+    pub sirr: f64,   // Required signal-to-interference ratio (dB)
 
     // Parameters for approximate basic circuit reliability for digital modulation
-    pub f0: f64,             // Frequency dispersion at a level -10 dB relative to the peak signal amplitude
-    pub t0: f64,             // Time spread at a level -10 dB relative to the peak signal amplitude
+    pub f0: f64, // Frequency dispersion at a level -10 dB relative to the peak signal amplitude
+    pub t0: f64, // Time spread at a level -10 dB relative to the peak signal amplitude
 
     // Parameters for digital modulation performance
-    pub a: f64,              // Required A ratio (dB)
-    pub tw: f64,             // Time window (msec)
-    pub fw: f64,             // Frequency window (Hz)
+    pub a: f64,  // Required A ratio (dB)
+    pub tw: f64, // Time window (msec)
+    pub fw: f64, // Frequency window (Hz)
 
     pub l_tx: Location,
     pub l_rx: Location,
@@ -207,63 +206,62 @@ pub struct PathData {
     // current month. If the month changes foF2 and M3kF2 will have to be reloaded, while the pointer
     // foF2var does not since it is for the entire year
     // Pointers to array extracted from the coefficients in ~/IonMap directory
-    pub fof2: Vec<Vec<Vec<Vec<f32>>>>,         // foF2
-    pub m3kf2: Vec<Vec<Vec<Vec<f32>>>>,        // M(3000)F2
+    pub fof2: Vec<Vec<Vec<Vec<f32>>>>,  // foF2
+    pub m3kf2: Vec<Vec<Vec<Vec<f32>>>>, // M(3000)F2
     // Pointer to array extracted from the file "P1239-2 Decile Factors.txt"
     pub fof2var: Vec<Vec<Vec<Vec<Vec<f64>>>>>, // foF2 Variability from ITU-R P.1239-2 TABLE 2 and TABLE 3
 
     // End Array Pointers *************************************************************************
 
     // Calculated Parameters **********************************************************************
-    pub season: i32,         // This is used for MUF calculations
-    pub distance: f64,       // This is the great circle distance (km) between the rx and tx
-    pub ptick: f64,          // Slant range
-    pub dmax: f64,           // d sub max (km) determined as a function of the midpoint of the path and other parameter
-    pub b: f64,              // Intermediate value when calculating dmax also determined at midpoint of the path
-    pub ele: f64,            // For paths that are longer than 9000 km this is the composite elevation angle
+    pub season: i32,   // This is used for MUF calculations
+    pub distance: f64, // This is the great circle distance (km) between the rx and tx
+    pub ptick: f64,    // Slant range
+    pub dmax: f64, // d sub max (km) determined as a function of the midpoint of the path and other parameter
+    pub b: f64, // Intermediate value when calculating dmax also determined at midpoint of the path
+    pub ele: f64, // For paths that are longer than 9000 km this is the composite elevation angle
 
     // MUFs
-    pub bmuf: f64,           // Basic MUF (MHz)
-    pub muf50: f64,          // MUF exceeded for 50% of the days of the month (MHz)
-    pub muf90: f64,          // MUF exceeded for 90% of the days of the month (MHz)
-    pub muf10: f64,          // MUF exceeded for 10% of the days of the month (MHz)
-    pub opmuf: f64,          // Operation MUF (MHz)
-    pub opmuf90: f64,        // OPMUF exceeded for 90% of the days of the month (MHz)
-    pub opmuf10: f64,        // OPMUF exceeded for 10% of the days of the month (MHz)
+    pub bmuf: f64,    // Basic MUF (MHz)
+    pub muf50: f64,   // MUF exceeded for 50% of the days of the month (MHz)
+    pub muf90: f64,   // MUF exceeded for 90% of the days of the month (MHz)
+    pub muf10: f64,   // MUF exceeded for 10% of the days of the month (MHz)
+    pub opmuf: f64,   // Operation MUF (MHz)
+    pub opmuf90: f64, // OPMUF exceeded for 90% of the days of the month (MHz)
+    pub opmuf10: f64, // OPMUF exceeded for 10% of the days of the month (MHz)
     // Highest probable frequency, HPF, is 10% MUF (MHz)
     // Optimum working frequency, FOT, is 90% MUF (MHz)
-
-    pub n0_f2: i32,          // Lowest order F2 mode ( 0 to MAXF2MODES )
-    pub n0_e: i32,           // Lowest order E mode ( 0 to 2 )
+    pub n0_f2: i32, // Lowest order F2 mode ( 0 to MAXF2MODES )
+    pub n0_e: i32,  // Lowest order E mode ( 0 to 2 )
 
     // Signal powers
-    pub es: f64,  // The overall resultant equivalent median sky-wave field strength for path->distance < 7000 km
-    pub el: f64,  // The overall resultant median field strength for paths->distance > 9000 km
-    pub ei: f64,  // For paths->distance between 7000 and 9000 km the interpolated resultant median field strength
-    pub ep: f64,  // The Path Field Strength (dBu) Depending on the path distance this is either Es, El or Ei.
-    pub pr: f64,  // Median available receiver power
+    pub es: f64, // The overall resultant equivalent median sky-wave field strength for path->distance < 7000 km
+    pub el: f64, // The overall resultant median field strength for paths->distance > 9000 km
+    pub ei: f64, // For paths->distance between 7000 and 9000 km the interpolated resultant median field strength
+    pub ep: f64, // The Path Field Strength (dBu) Depending on the path distance this is either Es, El or Ei.
+    pub pr: f64, // Median available receiver power
 
     // Short path (< 7000 km) parameters
-    pub lz: f64,             // "Not otherwise included" loss
+    pub lz: f64, // "Not otherwise included" loss
 
     // Long path (> 9000 km) parameters
-    pub e0: f64,             // The free-space field strength for 3 MW EIRP
-    pub gap: f64,            // Focusing on long distance gain (dB)
-    pub ly: f64,             // "Not otherwise included" loss
-    pub fm: f64,             // Upper reference frequency
-    pub fl: f64,             // Lower reference frequency
-    pub f: f64,              // f(f, fH, fL, fM) in eqn 28 P.533-12
-    pub fh: f64,             // Mean gyrofrequency
-    pub gtl: f64,            // Largest antenna gain in the range 0 to 8 degrees
-    pub k: [f64; 2],         // Correction factor
+    pub e0: f64,     // The free-space field strength for 3 MW EIRP
+    pub gap: f64,    // Focusing on long distance gain (dB)
+    pub ly: f64,     // "Not otherwise included" loss
+    pub fm: f64,     // Upper reference frequency
+    pub fl: f64,     // Lower reference frequency
+    pub f: f64,      // f(f, fH, fL, fM) in eqn 28 P.533-12
+    pub fh: f64,     // Mean gyrofrequency
+    pub gtl: f64,    // Largest antenna gain in the range 0 to 8 degrees
+    pub k: [f64; 2], // Correction factor
 
     // Signal-to-noise ratio
-    pub snr: f64,            // Median resultant signal-to-noise ratio (dB) for bandwidth b (Hz)
-    pub du_sn: f64,          // Upper decile deviation of the signal-to-noise ratio (dB)
-    pub dl_sn: f64,          // Lower decile deviation of the signal-to-noise ratio (dB)
+    pub snr: f64,   // Median resultant signal-to-noise ratio (dB) for bandwidth b (Hz)
+    pub du_sn: f64, // Upper decile deviation of the signal-to-noise ratio (dB)
+    pub dl_sn: f64, // Lower decile deviation of the signal-to-noise ratio (dB)
 
     // Signal-to-noise at the required reliability
-    pub snrxx: f64,          //
+    pub snrxx: f64, //
 
     // Digitally modulated system stats
     pub sir: f64,   // Signal-to-interference ratio (db)
@@ -314,7 +312,6 @@ pub struct PathData {
 
     // Noise Structure
     pub noise_p: NoiseParams,
-
     // End Calculated Parameters *****************************************************************************
 }
 
@@ -357,7 +354,7 @@ impl Default for PathData {
             opmuf10: 0.0,
             n0_f2: 0,
             n0_e: 0,
-            es: 0.0,
+            es: TINY_DB as f64,
             el: 0.0,
             ei: 0.0,
             ep: 0.0,
@@ -401,24 +398,24 @@ impl Default for PathData {
         };
 
         // Initialize ionospheric parameter arrays
-        let hrs = 24;   // 24 hours
-        let lng = 241;  // 241 longitudes at 1.5 degree increments
-        let lat = 121;  // 121 latitudes at 1.5 degree increments
-        let ssn = 2;    // 2 SSN (12-month smoothed sun spot numbers) high and low
+        let hrs = 24; // 24 hours
+        let lng = 241; // 241 longitudes at 1.5 degree increments
+        let lat = 121; // 121 latitudes at 1.5 degree increments
+        let ssn = 2; // 2 SSN (12-month smoothed sun spot numbers) high and low
 
         path.fof2 = vec![vec![vec![vec![0.0f32; ssn]; lat]; lng]; hrs];
         path.m3kf2 = vec![vec![vec![vec![0.0f32; ssn]; lat]; lng]; hrs];
 
         // Initialize foF2 variability arrays
         let season = 3; // 3 seasons
-        //      1) WINTER 2) EQUINOX 3) SUMMER
-        let hrs = 24;   // 24 hours  
-        let lat = 19;   // 19 latitude by 5
-        //      0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90
-        let ssn = 3;    // 3 SSN ranges
-        //      1) R12 < 50 2) 50 <= R12 <= 100 3) R12 > 100
-        let decile = 2; // 2 deciles 
-        //  1) lower 2) upper
+                        //      1) WINTER 2) EQUINOX 3) SUMMER
+        let hrs = 24; // 24 hours
+        let lat = 19; // 19 latitude by 5
+                      //      0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90
+        let ssn = 3; // 3 SSN ranges
+                     //      1) R12 < 50 2) 50 <= R12 <= 100 3) R12 > 100
+        let decile = 2; // 2 deciles
+                        //  1) lower 2) upper
 
         path.fof2var = vec![vec![vec![vec![vec![0.0f64; decile]; ssn]; lat]; hrs]; season];
 

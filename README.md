@@ -89,6 +89,15 @@ Detailed technical analysis showing:
 - Noise analysis
 - Complete parameter breakdown
 
+## Testing
+
+### Implementation Validation
+To validate the Rust implementation against the authoritative C reference:
+
+```bash
+./tests/validate_implementation.sh
+```
+
 ## What is P.372-16 & P.533-12?
 - P.372-16 is a recommendation from ITU-R that describes a method to predict the radio noise floor in the HF band. This implementation shouldn't be used for any other purpose than study and research.
 - P.533-12 is a recommendation from ITU-R that describes a method to predict HF propagation characteristics. This implementation shouldn't be used for any other purpose than study and research.

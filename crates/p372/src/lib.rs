@@ -1,6 +1,5 @@
-use chrono::Datelike;
 use lazy_static::lazy_static;
-use std::{default, f64::consts::PI};
+use std::f64::consts::PI;
 
 #[derive(Debug, Default, Clone, Copy)]
 struct ManMadeNoiseParams {
@@ -85,8 +84,9 @@ pub fn noise(
     rx_lat: f64,
     terrain_category: TerrainCategory,
     frequency: f64,
+    month: u32,
 ) -> NoiseParams {
-    let atmospheric_noise = calculate_atmospheric_noise(hour, rx_long, rx_lat, frequency);
+    let atmospheric_noise = calculate_atmospheric_noise(hour, rx_long, rx_lat, frequency, month);
     let man_made_noise = calculate_man_made_noise(terrain_category, frequency);
     let galactic_noise = calculate_galactic_noise(frequency);
 
@@ -163,16 +163,17 @@ pub fn calculate_atmospheric_noise(
     rx_lng: f64,
     rx_lat: f64,
     frequency: f64,
+    month: u32,
 ) -> AtmosphericNoise {
     // calculate local receiver mean time
     // every 15 degrees of longitude, the local mean time is 1 hour different
     // https://www.cs4fn.org/mobile/owntimezone.php
-    let mut local_receiver_mean_time = hour as f64 + (rx_lng / 15.0_f64.to_radians());
+    let mut local_receiver_mean_time = hour as i32 + (rx_lng / (15.0 * PI / 180.0)) as i32;
 
-    if local_receiver_mean_time < 0.0 {
-        local_receiver_mean_time += 24.0;
-    } else if local_receiver_mean_time > 23.0 {
-        local_receiver_mean_time -= 24.0;
+    if local_receiver_mean_time < 0 {
+        local_receiver_mean_time += 24;
+    } else if local_receiver_mean_time > 23 {
+        local_receiver_mean_time -= 24;
     }
 
     // The atmospheric noise is determined by
@@ -184,13 +185,15 @@ pub fn calculate_atmospheric_noise(
     //
     // iii) iterating between the two noise values. There are 6 time blocks so the modulo 6
     // keeps the indexes inbounds
-    let fs_now_timeblock = (local_receiver_mean_time / 4.0) % 6.0;
-    let fs_now = get_fam_parameters(rx_lng, rx_lat, frequency, fs_now_timeblock as usize);
+    let fs_now_timeblock = (local_receiver_mean_time / 4) % 6;
+    let fs_now = get_fam_parameters(rx_lng, rx_lat, frequency, fs_now_timeblock as usize, month);
 
-    let fs_adj_timeblock = (fs_now_timeblock + 1.0) % 6.0;
-    let fs_adj = get_fam_parameters(rx_lng, rx_lat, frequency, fs_adj_timeblock as usize);
+    let fs_adj_timeblock = (fs_now_timeblock + 1) % 6;
+    let fs_adj = get_fam_parameters(rx_lng, rx_lat, frequency, fs_adj_timeblock as usize, month);
 
-    let slp = (local_receiver_mean_time % 4.0) / 4.0;
+    // Interpolate is based on the local receiver mean time, lrxmt,
+    // and the 4 hour timeblock.
+    let slp = (local_receiver_mean_time % 4) as f64 / 4.0;
 
     AtmosphericNoise {
         fa_a: 10.0
@@ -208,9 +211,8 @@ pub fn calculate_atmospheric_noise(
     }
 }
 
-pub fn get_fam_parameters(lng: f64, lat: f64, frequency: f64, timeblock: usize) -> FamStats {
-    // get current month number
-    let month = chrono::Utc::now().month() as usize - 1;
+pub fn get_fam_parameters(lng: f64, lat: f64, frequency: f64, timeblock: usize, month: u32) -> FamStats {
+    let month = (month - 1) as usize;
 
     // Find the atmospheric noise Fam (db above kT0b at 1 MHz)
 
@@ -544,42 +546,42 @@ impl NoiseParams {
     pub fn get_total_noise(&self) -> f64 {
         self.fam_t
     }
-    
+
     /// Get the total noise upper decile
     pub fn get_upper_decile(&self) -> f64 {
         self.du_t
     }
-    
+
     /// Get the total noise lower decile
     pub fn get_lower_decile(&self) -> f64 {
         self.dl_t
     }
-    
+
     /// Get the atmospheric noise component (FaA)
     pub fn get_atmospheric_noise(&self) -> f64 {
         self.atmospheric_noise.fa_a
     }
-    
-    /// Get the man-made noise component (FaM) 
+
+    /// Get the man-made noise component (FaM)
     pub fn get_man_made_noise(&self) -> f64 {
         self.man_made_noise.fa_m
     }
-    
+
     /// Get the galactic noise component (FaG)
     pub fn get_galactic_noise(&self) -> f64 {
         self.galactic_noise.fa_g
     }
-    
+
     /// Get the atmospheric noise deciles
     pub fn get_atmospheric_deciles(&self) -> (f64, f64) {
         (self.atmospheric_noise.du_a, self.atmospheric_noise.dl_a)
     }
-    
+
     /// Get the man-made noise deciles  
     pub fn get_man_made_deciles(&self) -> (f64, f64) {
         (self.man_made_noise.du_m, self.man_made_noise.dl_m)
     }
-    
+
     /// Get the galactic noise deciles
     pub fn get_galactic_deciles(&self) -> (f64, f64) {
         (self.galactic_noise.du_g, self.galactic_noise.dl_g)

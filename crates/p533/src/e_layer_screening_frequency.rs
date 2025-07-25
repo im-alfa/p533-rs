@@ -16,7 +16,7 @@ pub fn calculate_e_layer_screening_frequency(path: &mut PathData) {
     };
 
     // Now find the E-Layer screening for the F2 modes that exist.
-    // The hop of the F2 mode is related to the index i. Since i is an C index use the hop number n = k + 1; 
+    // The hop of the F2 mode is related to the index i. Since i is an C index use the hop number n = k + 1;
     if path.n0_f2 != NO_LOWEST_MODE {
         for k in (path.n0_f2 as usize)..MAX_F2_MDS {
             // Determine the hop distance
@@ -27,9 +27,10 @@ pub fn calculate_e_layer_screening_frequency(path: &mut PathData) {
             } else if path.distance > path.dmax {
                 // In this case you have to find the mirror reflection height at all the control points and take the mean.
                 // Assume that the hop distance is path->dmax.
-                path.md_f2[k].hr = (mirror_reflection_height(path, &path.cp[TD02], dh) +
-                                   mirror_reflection_height(path, &path.cp[MP], dh) +
-                                   mirror_reflection_height(path, &path.cp[RD02], dh)) / 3.0;
+                path.md_f2[k].hr = (mirror_reflection_height(path, &path.cp[TD02], dh)
+                    + mirror_reflection_height(path, &path.cp[MP], dh)
+                    + mirror_reflection_height(path, &path.cp[RD02], dh))
+                    / 3.0;
             }
 
             // Find the elevation angle from equation 13 Section 5.1 Elevation angle.
@@ -45,7 +46,8 @@ pub fn calculate_e_layer_screening_frequency(path: &mut PathData) {
             } else {
                 // (path.distance > 2000)
                 // Use the larger of the foE at the control points 1000 km from either end.
-                path.md_f2[k].fs = 1.05 * f64::max(path.cp[T1K].foe, path.cp[R1K].foe) / f64::cos(i);
+                path.md_f2[k].fs =
+                    1.05 * f64::max(path.cp[T1K].foe, path.cp[R1K].foe) / f64::cos(i);
             }
         }
     }
@@ -105,11 +107,7 @@ fn mirror_reflection_height(path: &PathData, cp: &ControlPt, d: f64) -> f64 {
         let df = f64::min(0.115 * d / (z * (h + 140.0)), 0.65);
         let b = -7.535 * df.powi(4) + 15.75 * df.powi(3) - 8.834 * df.powi(2) - 0.378 * df + 1.0;
 
-        let h = if b2 >= 0.0 {
-            a2 + b2 * b
-        } else {
-            a2 + b2
-        };
+        let h = if b2 >= 0.0 { a2 + b2 * b } else { a2 + b2 };
 
         hr = f64::min(h, 800.0);
     } else {
@@ -130,7 +128,7 @@ pub fn elevation_angle(dh: f64, hr: f64) -> f64 {
 }
 
 /// Determine the angle of incidence from P.533-12 equation (12).
-/// Section 4 E-layer maximum screening frequency (fs) given the 
+/// Section 4 E-layer maximum screening frequency (fs) given the
 /// mirror reflection height (hr) and the elevation angle (deltaf)
 pub fn incidence_angle(deltaf: f64, hr: f64) -> f64 {
     f64::asin(R0 * f64::cos(deltaf) / (R0 + hr))

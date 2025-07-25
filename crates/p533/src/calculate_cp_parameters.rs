@@ -1,13 +1,13 @@
 use crate::constants::*;
-use crate::path_data::{PathData, ControlPt, Location};
+use crate::path_data::{ControlPt, Location, PathData};
 
 #[derive(Debug, Clone)]
 pub struct Neighbor {
-    pub l: Location,                // the physical location of the point
-    pub fof2: [f64; 2],            // the values for the ionospheric parameters at the point (SSN=0, SSN=100)
-    pub m3kf2: [f64; 2],           // the values for the ionospheric parameters at the point (SSN=0, SSN=100)
-    pub j: i32,                     // the j (lng) index into the gridpoint map
-    pub k: i32,                     // the k (lat) index into the gridpoint map
+    pub l: Location,     // the physical location of the point
+    pub fof2: [f64; 2],  // the values for the ionospheric parameters at the point (SSN=0, SSN=100)
+    pub m3kf2: [f64; 2], // the values for the ionospheric parameters at the point (SSN=0, SSN=100)
+    pub j: i32,          // the j (lng) index into the gridpoint map
+    pub k: i32,          // the k (lat) index into the gridpoint map
 }
 
 impl Default for Neighbor {
@@ -23,7 +23,7 @@ impl Default for Neighbor {
 }
 
 /// Calculate control point parameters
-/// Finds the ionospheric parameters foF2 and M3kF2 for high and low SSN, 
+/// Finds the ionospheric parameters foF2 and M3kF2 for high and low SSN,
 /// gyrofrequency and magnetic dip at 100 and 300 km, and solar parameters
 pub fn calculate_cp_parameters(path: &PathData, cp: &mut ControlPt) {
     calculate_cp_parameters_impl(cp, &path.fof2, &path.m3kf2, path.hour, path.ssn, path.month);
@@ -32,25 +32,25 @@ pub fn calculate_cp_parameters(path: &PathData, cp: &mut ControlPt) {
 /// Calculate control point parameters implementation with individual parameters
 /// This allows calling without borrowing issues from the main path struct
 pub fn calculate_cp_parameters_impl(
-    cp: &mut ControlPt, 
-    fof2_data: &Vec<Vec<Vec<Vec<f32>>>>, 
-    m3kf2_data: &Vec<Vec<Vec<Vec<f32>>>>, 
-    hour: i32, 
-    ssn: i32, 
-    month: i32
+    cp: &mut ControlPt,
+    fof2_data: &Vec<Vec<Vec<Vec<f32>>>>,
+    m3kf2_data: &Vec<Vec<Vec<Vec<f32>>>>,
+    hour: i32,
+    ssn: i32,
+    month: i32,
 ) {
     /*
-        CalculateCPParameters() finds the ionosheric parameters foF2 and M3kF2 for the high (SSN = 100) and low (SSN = 0), the gyrofrequency and magnetic dip at 100 and 300 km 
-            and the solar parameters for the control point. The ionospheric parameters are determined by the bi-linear interpolation method in P.1144-3 (2001) 
-            and linear interpolation by the desired SSN (Found in path.SSN - the user selected SSN) the routine determines the foF2 and M3F2 at the point of interest. 
-            This routine further determines foE at the point of interest. 
+        CalculateCPParameters() finds the ionosheric parameters foF2 and M3kF2 for the high (SSN = 100) and low (SSN = 0), the gyrofrequency and magnetic dip at 100 and 300 km
+            and the solar parameters for the control point. The ionospheric parameters are determined by the bi-linear interpolation method in P.1144-3 (2001)
+            and linear interpolation by the desired SSN (Found in path.SSN - the user selected SSN) the routine determines the foF2 and M3F2 at the point of interest.
+            This routine further determines foE at the point of interest.
 
             INPUT
                 struct PathData *path
                 struct ControlPt *here - This is a pointer to the control point of interest.
 
             OUTPUT
-                There are four subroutines in this program that calculate the parameters for 
+                There are four subroutines in this program that calculate the parameters for
                 the control point. Which subroutine calulates which parameter is summarized below
 
                 via IonosphericParameters()
@@ -62,7 +62,7 @@ pub fn calculate_cp_parameters_impl(
                 via magfit()
                     here.dip[2] - Magnetic dip calculated at 100 and 300 km
                     here.fH[2] - Gyrofreqency calculated at 100 and 300 km
-                via SolarParameters() 
+                via SolarParameters()
                     here.Sun.ha - Hour angle (radians)
                     here.Sun.sha -  Sunrise/Sunset hour angle (radians)
                     here.Sun.sza - Solar zenith angle (radians)
@@ -92,8 +92,8 @@ pub fn calculate_cp_parameters_impl(
     magfit(cp, 300.0);
 
     /*
-     * Calculate the solar parameters. 
-     * These parametres are used in the MedianSkywaveFieldStrengthLong() calculation. Because this 
+     * Calculate the solar parameters.
+     * These parametres are used in the MedianSkywaveFieldStrengthLong() calculation. Because this
      * routine determines the control point parameters for all methods, find the solar parameters now
      * before entering the conditional loop for the foE calculation.
      */
@@ -101,13 +101,13 @@ pub fn calculate_cp_parameters_impl(
     solar_parameters(cp, month, hour as f64);
 
     /*
-     * Calculate foE by the method outlined in P.1239-2. 
+     * Calculate foE by the method outlined in P.1239-2.
      */
     find_foe(cp, month, hour as f64, ssn);
 
-    /* 
+    /*
      * At each control point the gyrofrequency and magnetic dip must also be calculated.
-     * The calculation is done at two heights: 
+     * The calculation is done at two heights:
      *		height = 300 km is for the determination of MUF and the long path (> 9000 km).
      *      height = 100 km is used in the determination of absorption on the int paths (< 9000 km).
      */
@@ -124,16 +124,16 @@ fn ionospheric_parameters(
     hour: i32,
     mut ssn: i32,
 ) {
-    /*     
+    /*
       IonosphericParameters() - Finds foF2 and M(3000)F2 by Bilinear Interpolation.
-     
+
           INPUTS
              struct ControlPt *here,
               double ****foF2
              double ****M3kF2
              int hour
              int SSN
-     
+
          OUTPUT
              here->foF2
              here->M3KF2
@@ -142,7 +142,7 @@ fn ionospheric_parameters(
             BilinearInterpolation()
 
          I am indebted to Peter Suessman for the use of his program, iongrid ver 1.80, which was used extensively
-         to verify the method in this routine. 
+         to verify the method in this routine.
     */
 
     let mut ul = Neighbor::default(); // upper left
@@ -153,7 +153,7 @@ fn ionospheric_parameters(
     let mut ned = Neighbor::default();
 
     // For the gridpoint maps at an increment of 1.5 degrees in lat and long
-    const ZERO_LAT: i32 = 60; // The max latitude is 121 
+    const ZERO_LAT: i32 = 60; // The max latitude is 121
     const ZERO_LNG: i32 = 120; // The max longitude is 241
 
     // This routine is dependent on the 1.5 degree increment
@@ -164,9 +164,9 @@ fn ionospheric_parameters(
 
     /*
      * Find the neighborhood around the point of interest
-     * The neighbors are determined differently for each quadrant so that the neighbors are in the correct order relative to the 
-     * array indices. This is done to simplify the interpolation code. There are no quadrants in the foF2 and M3kF2 data array. In the 
-     * foF2 and M3kF2 array the 0,0 point is the southwest corner and the indices increase north and east. 
+     * The neighbors are determined differently for each quadrant so that the neighbors are in the correct order relative to the
+     * array indices. This is done to simplify the interpolation code. There are no quadrants in the foF2 and M3kF2 data array. In the
+     * foF2 and M3kF2 array the 0,0 point is the southwest corner and the indices increase north and east.
      * First determine the quadrant
      */
     if cp.l.lat >= 0.0 {
@@ -213,7 +213,7 @@ fn ionospheric_parameters(
         } else {
             // NW quad
             lr.k = ZERO_LAT + (cp.l.lat / INC) as i32; // North is positive
-            lr.j = ZERO_LNG + (cp.l.lng / INC) as i32; // West is negative	
+            lr.j = ZERO_LNG + (cp.l.lng / INC) as i32; // West is negative
             ll.k = lr.k;
             ll.j = lr.j - 1;
             ul.k = lr.k + 1;
@@ -370,18 +370,26 @@ fn ionospheric_parameters(
     // Now you are ready to interpolate the value at the point of interest
     // determine the fractional "column" j and fractional "row" k for the bilinear interpolation calculation
     let frack = f64::abs(cp.l.lat / INC) - (f64::abs(cp.l.lat / INC) as i32) as f64; // Fractional row distance
-    // Fractional "column" j and fractional "row" k
+                                                                                     // Fractional "column" j and fractional "row" k
     let fracj = f64::abs(cp.l.lng / INC) - (f64::abs(cp.l.lng / INC) as i32) as f64; // Fractional column distance
     for m in 0..2 {
-        ned.fof2[m] = bilinear_interpolation(ll.fof2[m], lr.fof2[m], ul.fof2[m], ur.fof2[m], frack, fracj);
-        ned.m3kf2[m] = bilinear_interpolation(ll.m3kf2[m], lr.m3kf2[m], ul.m3kf2[m], ur.m3kf2[m], frack, fracj);
+        ned.fof2[m] =
+            bilinear_interpolation(ll.fof2[m], lr.fof2[m], ul.fof2[m], ur.fof2[m], frack, fracj);
+        ned.m3kf2[m] = bilinear_interpolation(
+            ll.m3kf2[m],
+            lr.m3kf2[m],
+            ul.m3kf2[m],
+            ur.m3kf2[m],
+            frack,
+            fracj,
+        );
     }
 
     // End of calculation for foF2 and M3kF2
 
     /*
      * Now interpolate by the SSN. Note the SSN maximum has been restricted to a maximum of 160 ITU-R P.533-12.
-     * "For most purposes it is adequate to assume a linear relationship with R12 for both foF2 and M(3000)F2." 
+     * "For most purposes it is adequate to assume a linear relationship with R12 for both foF2 and M(3000)F2."
      * ITU-R P.1239-2 (10-2009)
      * Note the index on foF2 and M3kF2 in the neighbor structure is for the SSN = 0 (index = 0) and SSN = 100 (index = 1)
      */
@@ -394,8 +402,8 @@ fn ionospheric_parameters(
 
 /// Calculate solar parameters for the control point
 pub fn solar_parameters(cp: &mut ControlPt, month: i32, hour: f64) {
-    /*     
-         SolarParameters() - Calculate the solar parameters at the control point for the given 
+    /*
+         SolarParameters() - Calculate the solar parameters at the control point for the given
              time and month.
 
              INPUT
@@ -419,7 +427,7 @@ pub fn solar_parameters(cp: &mut ControlPt, month: i32, hour: f64) {
         Thanks to the following references
         See www.analemma.com/Pages/framesPage.html
         See holbert.faculty.asu.edu/eee463/SolarCalcs.pdf
-        Although W is + and E is - and the time zones are also reversed 
+        Although W is + and E is - and the time zones are also reversed
         See www.esrl.noaa.gov/gmd/grad/solcalc/solareqns.PDF
     */
 
@@ -433,13 +441,13 @@ pub fn solar_parameters(cp: &mut ControlPt, month: i32, hour: f64) {
     let doty = [0, 31, 59, 90, 120, 152, 181, 212, 243, 273, 304, 334];
 
     // Determine the local time, hours, minutes, seconds and time zone
-    let ltime = hour + (cp.l.lng / (15.0 * D2R)) as i32 as f64; // Local time 
-    // Local time 
+    let ltime = hour + (cp.l.lng / (15.0 * D2R)) as i32 as f64; // Local time
+                                                                // Local time
     let tzone = (cp.l.lng / (15.0 * D2R)) as i32 as f64; // hours
-    // Time zone
-    // At present this code only works for the 15th day of the month
-    // If this changes a day field should be added to the path structure
-    // and passed into this routine
+                                                         // Time zone
+                                                         // At present this code only works for the 15th day of the month
+                                                         // If this changes a day field should be added to the path structure
+                                                         // and passed into this routine
     let day = 15;
 
     let d = doty[month as usize] as f64 + day as f64 + hour / 24.0;
@@ -470,25 +478,30 @@ pub fn solar_parameters(cp: &mut ControlPt, month: i32, hour: f64) {
     let beta = f64::atan(c * f64::tan(epsilon));
 
     // Equation of Time = tilt effect + elliptic effect
-    // Where 0.398892 is the minutes per degree of Earth's rotation 
-    // 1440 minutes per day /361 degrees per day 
+    // Where 0.398892 is the minutes per degree of Earth's rotation
+    // 1440 minutes per day /361 degrees per day
     cp.sun.eot = b * (epsilon - beta + (lambda - nu)) * R2D;
 
     // Solar declination in radians
-    cp.sun.decl = f64::asin(s * f64::sin(f64::sin(a * (d - 2.0) * D2R) * 0.016713 + a * (d - 2.0) * D2R - v));
+    cp.sun.decl =
+        f64::asin(s * f64::sin(f64::sin(a * (d - 2.0) * D2R) * 0.016713 + a * (d - 2.0) * D2R - v));
 
     // Find the hour angle which can be found from the solar time corrected for the local longitude and the eot
     let toffset = (cp.l.lng / (15.0 * D2R) - tzone) * 60.0 + cp.sun.eot; // minutes
 
     let tst = ltime * 60.0 + toffset; // Apparent/Local/True solar time in minutes
-    // True solar time
+                                      // True solar time
     cp.sun.ha = (tst / 4.0 - 180.0) * D2R; // radians
 
     // Hour angle at sunrise and sunset in radians
-    cp.sun.sha = f64::acos(f64::cos(90.833 * D2R) / (f64::cos(cp.l.lat) * f64::cos(cp.sun.decl)) - f64::tan(cp.l.lat) * f64::tan(cp.sun.decl));
+    cp.sun.sha = f64::acos(
+        f64::cos(90.833 * D2R) / (f64::cos(cp.l.lat) * f64::cos(cp.sun.decl))
+            - f64::tan(cp.l.lat) * f64::tan(cp.sun.decl),
+    );
 
     // The cosine of the solar zenith angle can be found
-    let mut cosphi = f64::sin(cp.l.lat) * f64::sin(cp.sun.decl) + f64::cos(cp.l.lat) * f64::cos(cp.sun.decl) * f64::cos(cp.sun.ha); // cosine of the solar zenith angle
+    let mut cosphi = f64::sin(cp.l.lat) * f64::sin(cp.sun.decl)
+        + f64::cos(cp.l.lat) * f64::cos(cp.sun.decl) * f64::cos(cp.sun.ha); // cosine of the solar zenith angle
 
     /* (watch out for the roundoff errors) */
     if f64::abs(cosphi) > 1.0 {
@@ -511,7 +524,7 @@ pub fn solar_parameters(cp: &mut ControlPt, month: i32, hour: f64) {
     // Local Solar noon relative to UTC in fractional hours
     cp.sun.lsn = (720.0 + -cp.l.lng * R2D * 4.0 - cp.sun.eot) / 60.0;
 
-    // Roll over the times. Note: add 24 because for the fmod(x, 24) x might be negative 
+    // Roll over the times. Note: add 24 because for the fmod(x, 24) x might be negative
     cp.sun.lsr = (cp.sun.lsr + 24.0) % 24.0;
     cp.sun.lss = (cp.sun.lss + 24.0) % 24.0;
     cp.sun.lsn = (cp.sun.lsn + 24.0) % 24.0;
@@ -522,9 +535,9 @@ pub fn solar_parameters(cp: &mut ControlPt, month: i32, hour: f64) {
 
 /// Calculate foE for the control point
 fn find_foe(cp: &mut ControlPt, month: i32, hour: f64, mut ssn: i32) {
-    /* 
-        FindFoE() - Determines the critical frequency of the E-layer, foE, by the method in 
-        ITU-R P.1239. This routine assumes that the solar parameters have been calculated 
+    /*
+        FindFoE() - Determines the critical frequency of the E-layer, foE, by the method in
+        ITU-R P.1239. This routine assumes that the solar parameters have been calculated
         for the control point before execution.
 
         INPUT
@@ -545,20 +558,20 @@ fn find_foe(cp: &mut ControlPt, month: i32, hour: f64, mut ssn: i32) {
     let n: f64;
     let x: f64;
     let y: f64; // temps
-    // End of Temporary Variables
+                // End of Temporary Variables
 
     // Restrict the ssn to 160
     ssn = i32::min(ssn, MAX_SSN);
 
     /*
      * Now find the foE for the control point "here"
-     * There are four parts to the calculation 
+     * There are four parts to the calculation
      *		A = solar activity factor
      *		B = seasonal factor
      *		C = main latitude factor
      *		D = time-of-day factor
      */
-    /* 
+    /*
      * Calculation for A : solar activity factor
      * First find phi sub 12 (phi) by eqn (2) in P.1239-2 (2009)
      */
@@ -583,7 +596,7 @@ fn find_foe(cp: &mut ControlPt, month: i32, hour: f64, mut ssn: i32) {
 
     let b = f64::powf(f64::cos(n), m); // seasonal factor
 
-    /* 
+    /*
      * Calculation for C : main latitude factor
      */
     if f64::abs(cp.l.lat) < 32.0 * D2R {
@@ -596,11 +609,15 @@ fn find_foe(cp: &mut ControlPt, month: i32, hour: f64, mut ssn: i32) {
     }
 
     let c = x + y * f64::cos(cp.l.lat); // main latitude factor
-    /*
-     * Calculation of D : time-of-day factor
-     */
+                                        /*
+                                         * Calculation of D : time-of-day factor
+                                         */
     // In each case in determining D from the solar zenith angle (here.sza) the p exponent is determined the same
-    let p = if f64::abs(cp.l.lat) <= 12.0 * D2R { 1.31 } else { 1.2 }; // coefficient
+    let p = if f64::abs(cp.l.lat) <= 12.0 * D2R {
+        1.31
+    } else {
+        1.2
+    }; // coefficient
 
     // Now calculate D conditional on the solar zenith angle (here.sza)
     let d = if cp.sun.sza <= 73.0 * D2R {
@@ -628,29 +645,31 @@ fn find_foe(cp: &mut ControlPt, month: i32, hour: f64, mut ssn: i32) {
         }
 
         // If it is night determine if here is in a polar region and during a period of polar winter
-        // The Norwegian territory of Svalbad is known to experiences a civil polar night lasting 
-        // from about 11 November until 30 January. 
-        // Civil Polar night is when the sun is 6 degrees below the horizon. 
+        // The Norwegian territory of Svalbad is known to experiences a civil polar night lasting
+        // from about 11 November until 30 January.
+        // Civil Polar night is when the sun is 6 degrees below the horizon.
         // Because the arctic circle is at 66.5622 degrees, civil twilight would be 72.5622 degrees. Although civil twilight is chosen here,
-        // the precise angle of ionospheric twilight is open to debate. Half the month of November to the 1st of February experiences polar 
+        // the precise angle of ionospheric twilight is open to debate. Half the month of November to the 1st of February experiences polar
         // night. This program works on median months, so polar night will be defined as ...
-        if (cp.l.lat > 72.5622 * D2R &&
-            (month == NOV || month == DEC || month == JAN))
-            ||
-            (cp.l.lat < -72.5622 * D2R && (month == MAY || month == JUN ||
-                                           month == JUL)) {
+        if (cp.l.lat > 72.5622 * D2R && (month == NOV || month == DEC || month == JAN))
+            || (cp.l.lat < -72.5622 * D2R && (month == MAY || month == JUN || month == JUL))
+        {
             // Northern hemisphere polar winter || Southern hemisphere polar winter
             f64::powf(0.072, p) * f64::exp(25.2 - 0.28 * cp.sun.sza * R2D)
         } else {
             // Choose the larger of the two calculations
-            f64::max(f64::powf(0.072, p) * f64::exp(-1.4 * h),
-                f64::powf(0.072, p) * f64::exp(25.2 - 0.28 * cp.sun.sza * R2D))
+            f64::max(
+                f64::powf(0.072, p) * f64::exp(-1.4 * h),
+                f64::powf(0.072, p) * f64::exp(25.2 - 0.28 * cp.sun.sza * R2D),
+            )
         }
     };
 
     // Choose the larger of the foE calculations
-    cp.foe = f64::max(f64::powf(a * b * c * d, 0.25),
-        f64::powf(0.004 * f64::powf(1.0 + 0.021 * phi, 2.0), 0.25));
+    cp.foe = f64::max(
+        f64::powf(a * b * c * d, 0.25),
+        f64::powf(0.004 * f64::powf(1.0 + 0.021 * phi, 2.0), 0.25),
+    );
 }
 
 /// Calculate magnetic parameters at specified height
@@ -680,12 +699,12 @@ fn magfit(cp: &mut ControlPt, height: f64) {
             None
 
      For the following input parameters produce the following outputs for the Fh, gyrofrequency, and I, magnetic dip angle.
-     
-     lat_d =   0.732665 radians or (41 + 58/60 + 43/3600) degrees 
+
+     lat_d =   0.732665 radians or (41 + 58/60 + 43/3600) degrees
      long_d =  -1.534227 radians or -(87 + 54/60 + 17/3600) degrees
      height = 1800;
 
-     Fh = 0.733686 
+     Fh = 0.733686
      I = 1.241669
 
      This routine is based on MAGFIT.FOR in REC533.
@@ -699,7 +718,7 @@ fn magfit(cp: &mut ControlPt, height: f64) {
         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
     ];
 
     let mut dp: [[f64; 7]; 7] = [
@@ -709,44 +728,128 @@ fn magfit(cp: &mut ControlPt, height: f64) {
         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
     ];
 
     let g: [[f64; 7]; 7] = [
-        [0.000000, 0.304112, 0.024035, -0.031518, -0.041794, 0.016256, -0.019523],
-        [0.000000, 0.021474, -0.051253, 0.062130, -0.045298, -0.034407, -0.004853],
-        [0.000000, 0.000000, -0.013381, -0.024898, -0.021795, -0.019447, 0.003212],
-        [0.000000, 0.000000, 0.000000, -0.0064960, 0.007008, -0.000608, 0.021413],
-        [0.000000, 0.000000, 0.000000, 0.000000, -0.002044, 0.002775, 0.001051],
-        [0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000697, 0.000227],
-        [0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.001115]
+        [
+            0.000000, 0.304112, 0.024035, -0.031518, -0.041794, 0.016256, -0.019523,
+        ],
+        [
+            0.000000, 0.021474, -0.051253, 0.062130, -0.045298, -0.034407, -0.004853,
+        ],
+        [
+            0.000000, 0.000000, -0.013381, -0.024898, -0.021795, -0.019447, 0.003212,
+        ],
+        [
+            0.000000, 0.000000, 0.000000, -0.0064960, 0.007008, -0.000608, 0.021413,
+        ],
+        [
+            0.000000, 0.000000, 0.000000, 0.000000, -0.002044, 0.002775, 0.001051,
+        ],
+        [
+            0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000697, 0.000227,
+        ],
+        [
+            0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.001115,
+        ],
     ];
 
     let h: [[f64; 7]; 7] = [
-        [0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000],
-        [0.000000, -0.057989, 0.033124, 0.014870, -0.011825, -0.000796, -0.005758],
-        [0.000000, 0.000000, -0.001579, -0.004075, 0.010006, -0.002000, -0.008735],
-        [0.000000, 0.000000, 0.000000, 0.000210, 0.000430, 0.004597, -0.003406],
-        [0.000000, 0.000000, 0.000000, 0.000000, 0.001385, 0.002421, -0.000118],
-        [0.000000, 0.000000, 0.000000, 0.000000, 0.000000, -0.001218, -0.001116],
-        [0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, -0.000325]
+        [
+            0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000,
+        ],
+        [
+            0.000000, -0.057989, 0.033124, 0.014870, -0.011825, -0.000796, -0.005758,
+        ],
+        [
+            0.000000, 0.000000, -0.001579, -0.004075, 0.010006, -0.002000, -0.008735,
+        ],
+        [
+            0.000000, 0.000000, 0.000000, 0.000210, 0.000430, 0.004597, -0.003406,
+        ],
+        [
+            0.000000, 0.000000, 0.000000, 0.000000, 0.001385, 0.002421, -0.000118,
+        ],
+        [
+            0.000000, 0.000000, 0.000000, 0.000000, 0.000000, -0.001218, -0.001116,
+        ],
+        [
+            0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, -0.000325,
+        ],
     ];
 
     let ct: [[f64; 7]; 7] = [
-        [0.0000000, 0.0000000, 0.33333333, 0.266666666, 0.25714286, 0.25396825, 0.25252525],
-        [0.0000000, 0.0000000, 0.00000000, 0.200000000, 0.22857142, 0.23809523, 0.24242424],
-        [0.0000000, 0.0000000, 0.00000000, 0.000000000, 0.14285714, 0.19047619, 0.21212121],
-        [0.0000000, 0.0000000, 0.00000000, 0.000000000, 0.00000000, 0.11111111, 0.16161616],
-        [0.0000000, 0.0000000, 0.00000000, 0.000000000, 0.00000000, 0.00000000, 0.09090909],
-        [0.0000000, 0.0000000, 0.00000000, 0.000000000, 0.00000000, 0.00000000, 0.00000000],
-        [0.0000000, 0.0000000, 0.00000000, 0.000000000, 0.00000000, 0.00000000, 0.00000000]
+        [
+            0.0000000,
+            0.0000000,
+            0.33333333,
+            0.266666666,
+            0.25714286,
+            0.25396825,
+            0.25252525,
+        ],
+        [
+            0.0000000,
+            0.0000000,
+            0.00000000,
+            0.200000000,
+            0.22857142,
+            0.23809523,
+            0.24242424,
+        ],
+        [
+            0.0000000,
+            0.0000000,
+            0.00000000,
+            0.000000000,
+            0.14285714,
+            0.19047619,
+            0.21212121,
+        ],
+        [
+            0.0000000,
+            0.0000000,
+            0.00000000,
+            0.000000000,
+            0.00000000,
+            0.11111111,
+            0.16161616,
+        ],
+        [
+            0.0000000,
+            0.0000000,
+            0.00000000,
+            0.000000000,
+            0.00000000,
+            0.00000000,
+            0.09090909,
+        ],
+        [
+            0.0000000,
+            0.0000000,
+            0.00000000,
+            0.000000000,
+            0.00000000,
+            0.00000000,
+            0.00000000,
+        ],
+        [
+            0.0000000,
+            0.0000000,
+            0.00000000,
+            0.000000000,
+            0.00000000,
+            0.00000000,
+            0.00000000,
+        ],
     ];
 
     let hr = match height {
         // dip and fH can only be calculated for 2 heights in this project
         100.0 => HR_100_KM,
         300.0 => HR_300_KM,
-        _ => HR_100_KM
+        _ => HR_100_KM,
     };
 
     let ar = R0 / (R0 + height);
@@ -763,20 +866,28 @@ fn magfit(cp: &mut ControlPt, height: f64) {
         for m in 0..=n {
             if n == m {
                 p[m][n] = f64::cos(cp.l.lat) * p[m - 1][n - 1];
-                dp[m][n] = f64::cos(cp.l.lat) * dp[m - 1][n - 1] + f64::sin(cp.l.lat) * p[m - 1][n - 1];
+                dp[m][n] =
+                    f64::cos(cp.l.lat) * dp[m - 1][n - 1] + f64::sin(cp.l.lat) * p[m - 1][n - 1];
             } else if n != 1 {
                 p[m][n] = f64::sin(cp.l.lat) * p[m][n - 1] - ct[m][n] * p[m][n - 2];
-                dp[m][n] = f64::sin(cp.l.lat) * dp[m][n - 1] - f64::cos(cp.l.lat) * p[m][n - 1] -
-                           ct[m][n] * dp[m][n - 2];
+                dp[m][n] = f64::sin(cp.l.lat) * dp[m][n - 1]
+                    - f64::cos(cp.l.lat) * p[m][n - 1]
+                    - ct[m][n] * dp[m][n - 2];
             } else {
                 p[m][n] = f64::sin(cp.l.lat) * p[m][n - 1];
                 dp[m][n] = f64::sin(cp.l.lat) * dp[m][n - 1] - f64::cos(cp.l.lat) * p[m][n - 1];
             }
 
-            sumz += p[m][n] * (g[m][n] * f64::cos(m as f64 * cp.l.lng) + h[m][n] * f64::sin(m as f64 * cp.l.lng));
-            sumx += dp[m][n] * (g[m][n] * f64::cos(m as f64 * cp.l.lng) + h[m][n] * f64::sin(m as f64 * cp.l.lng));
-            sumy += m as f64 * p[m][n] *
-                (g[m][n] * f64::sin(m as f64 * cp.l.lng) - h[m][n] * f64::cos(m as f64 * cp.l.lng));
+            sumz += p[m][n]
+                * (g[m][n] * f64::cos(m as f64 * cp.l.lng)
+                    + h[m][n] * f64::sin(m as f64 * cp.l.lng));
+            sumx += dp[m][n]
+                * (g[m][n] * f64::cos(m as f64 * cp.l.lng)
+                    + h[m][n] * f64::sin(m as f64 * cp.l.lng));
+            sumy += m as f64
+                * p[m][n]
+                * (g[m][n] * f64::sin(m as f64 * cp.l.lng)
+                    - h[m][n] * f64::cos(m as f64 * cp.l.lng));
         }
 
         fz += f64::powf(ar, n as f64 + 2.0) * (n as f64 + 1.0) * sumz;
@@ -784,14 +895,15 @@ fn magfit(cp: &mut ControlPt, height: f64) {
         fy += f64::powf(ar, n as f64 + 2.0) * sumy;
     }
 
-    cp.dip[hr] = f64::atan(fz / f64::sqrt(f64::powf(fx, 2.0) + f64::powf(fy / f64::cos(cp.l.lat), 2.0)));
-    cp.fh[hr] = 2.8 * f64::sqrt(f64::powf(fx, 2.0) + f64::powf(fy / f64::cos(cp.l.lat), 2.0) + f64::powf(fz, 2.0));
+    cp.dip[hr] =
+        f64::atan(fz / f64::sqrt(f64::powf(fx, 2.0) + f64::powf(fy / f64::cos(cp.l.lat), 2.0)));
+    cp.fh[hr] = 2.8
+        * f64::sqrt(
+            f64::powf(fx, 2.0) + f64::powf(fy / f64::cos(cp.l.lat), 2.0) + f64::powf(fz, 2.0),
+        );
 }
 
 /// Bilinear interpolation function implementing ITU-R P.1144-5 method
 pub fn bilinear_interpolation(ll: f64, lr: f64, ul: f64, ur: f64, r: f64, c: f64) -> f64 {
-    ll * ((1.0 - r) * (1.0 - c)) +
-    ul * (r * (1.0 - c)) +
-    lr * ((1.0 - r) * c) +
-    ur * (r * c)
+    ll * ((1.0 - r) * (1.0 - c)) + ul * (r * (1.0 - c)) + lr * ((1.0 - r) * c) + ur * (r * c)
 }

@@ -1,0 +1,3 @@
+[submodule "vendor/ITU-R-HF"]
+	path = vendor/ITU-R-HF
+	url = https://github.com/ITU-R-Study-Group-3/ITU-R-HF

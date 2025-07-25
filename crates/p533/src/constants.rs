@@ -3,10 +3,10 @@
 pub const TRUE: i32 = 1;
 pub const FALSE: i32 = 0;
 pub const PI: f64 = 3.14159265358979323846;
-pub const R0: f64 = 6371.009;        // km International Union of Geodesy and Geophysics mean Earth radius
-pub const D2R: f64 = 0.0174532925;   // PI/180
-pub const R2D: f64 = 57.2957795;     // 180/PI
-pub const VOF_L: f64 = 299792458.0;  // Velocity of light (m/s)
+pub const R0: f64 = 6371.009; // km International Union of Geodesy and Geophysics mean Earth radius
+pub const D2R: f64 = 0.0174532925; // PI/180
+pub const R2D: f64 = 57.2957795; // 180/PI
+pub const VOF_L: f64 = 299792458.0; // Velocity of light (m/s)
 
 pub const TINY_DB: i32 = -307;
 pub const TOO_BIG: f64 = 1.7976931348623157E+308;
@@ -19,14 +19,14 @@ pub const DBL_EPSILON: f64 = 2.2204460492503131E-016;
 // These are defined from the sense of the short model
 // Please note these change meaning when the long model is exclusively used
 // i.e when the path->distance is > 9000 km. This is done for diagnostic purposes.
-pub const T1K: usize = 0;   // T + 1000 (km)
-// Note: Alternative use in long model penetration point closest to the transmitter at the current hour
-pub const TD02: usize = 1;  // T + d0/2 (km)
-pub const MP: usize = 2;    // path mid-path (km);
-pub const RD02: usize = 3;  // R - d0/2 (km)
-// Note: Alternative use in lone model as R - dM/2
-pub const R1K: usize = 4;   // R - 1000 (km)
-// Note: Alternative use in long model at last penetration point, 2*nL, at current hour
+pub const T1K: usize = 0; // T + 1000 (km)
+                          // Note: Alternative use in long model penetration point closest to the transmitter at the current hour
+pub const TD02: usize = 1; // T + d0/2 (km)
+pub const MP: usize = 2; // path mid-path (km);
+pub const RD02: usize = 3; // R - d0/2 (km)
+                           // Note: Alternative use in lone model as R - dM/2
+pub const R1K: usize = 4; // R - 1000 (km)
+                          // Note: Alternative use in long model at last penetration point, 2*nL, at current hour
 
 // foF2 variability index names for readability
 pub const WINTER: usize = 0;
@@ -37,7 +37,7 @@ pub const SUMMER: usize = 2;
 pub const DL: usize = 0; // Lower decile
 pub const DU: usize = 1; // Upper decile
 
-pub const DAY: usize = 0;   // DAY index for the rop array in CalculateMUFOperational()
+pub const DAY: usize = 0; // DAY index for the rop array in CalculateMUFOperational()
 pub const NIGHT: usize = 1; // NIGHT index for the rop array in CalculateMUFOperational()
 
 pub const JAN: i32 = 0;
@@ -90,7 +90,7 @@ pub const MIN_ELE_ANGLE_L: f64 = 3.0;
 // Indices for magfit() The gyrofrequency and magnetic dip are calculated at a height
 //      of either 100 or 300 km. For absorption calculation 100 km is typically used
 //      while 300 km is used for other calculations.
-pub const HR_100_KM: usize = 0;  // height = 100 (km)
-pub const HR_300_KM: usize = 1;  // height = 300 (km)
+pub const HR_100_KM: usize = 0; // height = 100 (km)
+pub const HR_300_KM: usize = 1; // height = 300 (km)
 
 // Note: Alternative use in long model as T + dM/2
